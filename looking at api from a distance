@@ -5,4 +5,8 @@
     - '{"delivery_slot_id": _FROM FIRST REQUEST _ ,"is_unattended_delivery":true,"in_modal":false,"delivery_address_id": X}'`
     - Should then give you a checkout point
     - Opening this url seems to actualyl affect the checkout page, intresting!
-    - 
+  - Then you open the checkout url
+    - Parse the html, and return the csrf middleware token.
+    - Also send in the other form data fields - just in case :)
+  - ??? 
+  - Gifflar order on the way!

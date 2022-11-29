@@ -1,0 +1,8 @@
+- https://oda.com/api/v1/slot-picker/slots/?from-index=3&num-days=3
+  - Gives you valid dates
+- Confirming then seems to be 
+  - https://oda.com/api/v1/slot-picker/info/
+    - '{"delivery_slot_id": _FROM FIRST REQUEST _ ,"is_unattended_delivery":true,"in_modal":false,"delivery_address_id": X}'`
+    - Should then give you a checkout point
+    - Opening this url seems to actualyl affect the checkout page, intresting!
+    - 

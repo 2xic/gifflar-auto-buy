@@ -7,15 +7,14 @@ load_dotenv()
 
 class Oda:
 	def __init__(self):
-		self.cookie = None
 		self.csrftoken = None
 		self.requests = requests.session()
 
 	def login(self, username, password):
 		response = self.requests.get('https://oda.com/no/user/login/')
-		csrf_middlware_token = self._get_csrf_middlware_token(response.text)
+		csrf_middleware_token = self._get_csrf_middleware_token(response.text)
 		body = {
-			"csrfmiddlewaretoken": csrf_middlware_token,
+			"csrfmiddlewaretoken": csrf_middleware_token,
 			"username": username,
 			"password": password,
 		}
@@ -32,26 +31,30 @@ class Oda:
 		return self
 
 	def prepare_checkout(self, delivery_slot_id):
-		response = self.requests.post("https://oda.com/api/v1/slot-picker/info/", 
+		payload = {
+			"delivery_slot_id":delivery_slot_id,
+			"is_unattended_delivery":True,
+			"in_modal":False,
+			"delivery_address_id":os.getenv("DELIVERY__ID")
+		}
+		self.requests.post("https://oda.com/api/v1/slot-picker/info/", 
 			headers={
 				"Accept": "application/json",
 				"Cookie": self.cookie,
 				"X-CSRFToken": self.csrftoken, 
 				"Referer": "https://oda.com/no/checkout/delivery/time/",
 			},
-			# selected from the slot selector
-			json={"delivery_slot_id":delivery_slot_id,"is_unattended_delivery":True,"in_modal":False,"delivery_address_id":os.getenv("DELIVERY__ID")})
+			json=payload)
 		return self
 
 	def add_gifflar_to_cart(self):
-		response = self.requests.post("https://oda.com/no/cart/products/", 
+		self.requests.post("https://oda.com/no/cart/products/", 
 			headers={
 				"Accept": "*/*",
 				"Content-Type": "application/json; charset=UTF-8",
 				"X-CSRFToken": self.csrftoken,
 				"Referer": "https://oda.com/no/search/?q=gifflar",
 			},
-			# selected from a search query
 			json=[{"product_id":"11470","quantity":1,"delete":False,"tracking_location":"Cart"}],
 		)
 
@@ -71,10 +74,10 @@ class Oda:
 
 	def submit(self):
 		html = self.requests.get("https://oda.com/no/checkout/confirm/").text
-		csrf_middlware_token = self._get_csrf_middlware_token(html)
+		csrf_middleware_token = self._get_csrf_middleware_token(html)
 
 		body = {
-			"csrfmiddlewaretoken": csrf_middlware_token,
+			"csrfmiddlewaretoken": csrf_middleware_token,
 			"22-storedPaymentMethodId": os.getenv("PAYMENT_METHOD"),
 			"22-colorDepth": "24",
 			"22-javaEnabled": "false",
@@ -92,24 +95,23 @@ class Oda:
 			},
 			data=body
 		)
-		open("dump-iiiit", "w").write(response.text)
 
-	def _get_csrf_middlware_token(self, html):
+	def _get_csrf_middleware_token(self, html):
 		soup = BeautifulSoup(html, 'html.parser')
-		csrf_middlware_token = soup.find("input", {
+		csrf_middleware_token = soup.find("input", {
 			"name":"csrfmiddlewaretoken"
 		}).attrs["value"]
 
-		return csrf_middlware_token
+		return csrf_middleware_token
 
 if __name__ == "__main__":
 	oda = Oda().login(
 		os.getenv("EMAIL"),
 		os.getenv("PASSWORD")
 	)
-	delivert_slot = oda.get_next_delivery_slot()
-	if delivert_slot is None:
+	delivery_slot = oda.get_next_delivery_slot()
+	if delivery_slot is None:
 		raise Exception("Did not find a delivery slot")
-	oda.prepare_checkout(delivert_slot['id'])
+	oda.prepare_checkout(delivery_slot['id'])
 	oda.submit()
 

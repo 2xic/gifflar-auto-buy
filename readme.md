@@ -1,4 +1,4 @@
-# <\<big\> I love gifflar \</big\>
+# \<big\> I love gifflar \</big\>
 **No warranty is given. No complaints will be answered. Use at your own risk.**
 
 Amazon has Dash buttons, but no gifflar.
